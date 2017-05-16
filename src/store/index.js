@@ -6,6 +6,7 @@ console.log()
 
 let info = JSON.parse(window.localStorage.getItem('info'))
 
+//info = null
 let state = {
   info: info ? info : { title: '', countLists: 0, select: { list: -1, item: -1 } },
   lists: []
@@ -17,6 +18,14 @@ for (let i = 0; i < state.info.countLists; i++)
 export default new Vuex.Store({
   state: state,
   mutations: {
+    init(state) {
+      firebase.database().ref('users/lists')
+        .once('value', function (snapshot) {
+          let val = snapshot.val();
+          state.info = val.info;
+          state.lists = val.lists != undefined ? val.lists : [];
+        }); //*/
+    },
     newList(state, data) {
       let now = new Date();
       let list = {}

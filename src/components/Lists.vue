@@ -5,6 +5,7 @@
         <div class="card-content">
           <span class="card-title">Списки {{Progress}}<div class="waves-effect waves-light btn right" @click="newList"><i class="material-icons">add</i></div></span>
           <input type="text" @keydown="selectActive" @keyup="findShiftKey" id="keysLive" @focusout="focusout" @focusin="focus" autofocus>
+          <i class="fa title-list-check" :class="{'fa-sign-in' : true, 'fa-check-square-o': false}" aria-hidden="true" @click="checkList" v-if="progress != ''"></i>
         </div>
       </div>
     </div>
@@ -169,11 +170,18 @@
       window.onclick = function(event, ee, dd) {
         $('#keysLive').trigger('focus');
       }
+      this.$store.commit('init')
     },
     computed: {
       lists: function() {
         //console.log('update lists');
         window.localStorage.setItem('info', JSON.stringify(this.$store.state.info));
+
+        firebase.database().ref('users/lists').set({
+          info: this.$store.state.info,
+          lists: this.$store.state.lists
+        }); //*/
+        //console.log(this.$store.state)
         return this.$store.state.lists;
       },
       select: function() {

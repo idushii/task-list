@@ -14,6 +14,19 @@
 <body class="indigo lighten-5">
   <div id="app"></div>
   <!-- built files will be auto injected -->
+  <script src="https://www.gstatic.com/firebasejs/3.9.0/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyCJKkqZx_H-Bpu8JiC_VSDgPT5gBj3B37w",
+      authDomain: "task-list-2013c.firebaseapp.com",
+      databaseURL: "https://task-list-2013c.firebaseio.com",
+      projectId: "task-list-2013c",
+      storageBucket: "task-list-2013c.appspot.com",
+      messagingSenderId: "525701474721"
+    };
+    firebase.initializeApp(config);
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('static/manifest/sw.js');

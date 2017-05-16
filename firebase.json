@@ -1,5 +1,11 @@
 {
   "hosting": {
     "public": "dist"
+  },
+  "database": {
+    "rules": {
+      ".read": true,
+      ".write": true
+    }
   }
 }

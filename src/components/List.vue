@@ -36,18 +36,21 @@
         for (let i = 0; i < this.items.length; i++) {
           this.checkItem(this.items[i], this.info.complete)
         }
+        this.save()
       },
       rename() {
         let title = window.prompt('Как назвать список?', this.info.title)
         if (title) {
           this.info.title = title;
           this.$store.commit('updateListInfo', this);
+          this.save()
         }
       },
       remove() {
         if (window.confirm('Удалить список?')) {
           this.$store.commit('removeList', this)
           window.localStorage.removeItem(`list_${this.stateInfo.countLists}`)
+          this.save()
         }
       },
       newItem() {
@@ -61,8 +64,8 @@
             complete: false,
             times: {}
           })
+          this.save()
         }
-
       },
       checkItem(item, isCheck = null) {
         if (isCheck) {
@@ -84,6 +87,7 @@
           numList: this.numList,
           item
         });
+        this.save()
       },
       renameItem(item) {
         let title = window.prompt('Новый заголовок для подзадачи?', item.title)
@@ -101,10 +105,16 @@
             numList: this.numList,
             numItem: index
           })
+          this.save()
         }
       },
       save() {
-        window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list))
+        //console.log(`save list #${this.numList}`)
+        this.list.items = this.list.items.filter((list, index) => typeof(index) == 'number')
+        window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list));
+        firebase.database().ref('users/lists/list_' + this.numList).set({
+          list: this.list
+        }); //*/
       },
       thisSelectItem(numItem) {
         return this.$store.state.info.select.item == numItem
@@ -124,10 +134,14 @@
           info: {},
           times: {}
         };
+
+        if (list.items == undefined) list.items = []
+          //console.log(`list #${this.numList}`)
+          //console.log(list)
         return list;
       },
       items() {
-        this.save()
+        //this.save()
         return this.list.items;
       },
       info() {
