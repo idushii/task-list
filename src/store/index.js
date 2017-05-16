@@ -7,7 +7,7 @@ console.log()
 let info = JSON.parse(window.localStorage.getItem('info'))
 
 let state = {
-  info: info ? info : { title: '', countLists: 0, select: { list: -1, item: 0 } },
+  info: info ? info : { title: '', countLists: 0, select: { list: -1, item: -1 } },
   lists: []
 }
 

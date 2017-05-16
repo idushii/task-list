@@ -2,24 +2,16 @@
   <div class="card" id="List" :class="{'active-select': thisSelect}">
     <div class="card-content">
       <div class="row">
-        <div class="col s2 card-title">
-          <div class="waves-effect waves-light btn-flat center" @click="checkList" v-if="progress != ''">
-            <i class="fa title-list-check" :class="{'fa-square-o' : !this.info.complete, 'fa-check-square-o': this.info.complete}" aria-hidden="true"></i>
-          </div>
-        </div>
-        <div class="col s8 card-title">
+        <div class="col s10 card-title">
+          <i class="fa title-list-check" :class="{'fa-square-o' : !this.info.complete, 'fa-check-square-o': this.info.complete}" aria-hidden="true" @click="checkList" v-if="progress != ''"></i>
           <span class="title-list" @click="rename">{{info.title}}</span>
         </div>
         <div class="col s2 card-title">
           <div class="waves-effect waves-light btn right" @click="newItem"><i class="material-icons">add</i></div>
         </div><br>
         <div v-for="(item, index) in items">
-          <div class="col s2">
-            <div class="waves-effect waves-light btn-flat left" @click="checkItem(item)">
-              <i class="fa title-list-check" :class="{'fa-square-o' : !item.complete, 'fa-check-square-o': item.complete}" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="col s10">
+          <div class="col s12" :class="{'active-select-item': thisSelectItem(index)}">
+            <i class="fa title-list-check" :class="{'fa-square-o' : !item.complete, 'fa-check-square-o': item.complete}" aria-hidden="true" @click="checkItem(item)"></i>
             <span class="title-item" @click="renameItem(item)">{{item.title}}</span>
             <div class="waves-effect waves-light btn-flat" @click="deleteItem(index)"><i class="material-icons">delete</i></div>
           </div>
@@ -113,6 +105,9 @@
       },
       save() {
         window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list))
+      },
+      thisSelectItem(numItem) {
+        return this.$store.state.info.select.item == numItem
       }
     },
     data() {
@@ -162,6 +157,7 @@
     position: relative;
     top: 3px;
     cursor: pointer;
+    margin-right: 10px;
   }
   
   .title-list {
@@ -184,5 +180,9 @@
   
   .card .card-action {
     background-color: transparent;
+  }
+  
+  .active-select-item {
+    background-color: white;
   }
 </style>
