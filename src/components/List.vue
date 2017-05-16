@@ -182,6 +182,10 @@
     background-color: transparent;
   }
   
+  .active-select {
+    background-color: rgba(0, 255, 255, 0.2);
+  }
+  
   .active-select-item {
     background-color: white;
   }
