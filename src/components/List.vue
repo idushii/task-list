@@ -1,5 +1,5 @@
 <template>
-  <div class="card" id="List">
+  <div class="card" id="List" :class="{'active-select': thisSelect}">
     <div class="card-content">
       <div class="row">
         <div class="col s2 card-title">
@@ -144,6 +144,9 @@
       },
       stateInfo() {
         return this.$store.state.info;
+      },
+      thisSelect() {
+        return this.$store.state.info.select.list == this.numList
       }
     }
   }
@@ -177,5 +180,9 @@
   .progress-items {
     font-size: 1.3rem;
     padding-top: 10px;
+  }
+  
+  .card .card-action {
+    background-color: transparent;
   }
 </style>

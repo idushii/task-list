@@ -1,9 +1,10 @@
 <template>
   <div class="row">
     <div class="col s12 m12">
-      <div class="card pink lighten-4">
+      <div class="card" :class="{'active-select': select.list == -1}">
         <div class="card-content">
           <span class="card-title">Списки <div class="waves-effect waves-light btn right" @click="newList"><i class="material-icons">add</i></div></span>
+          <input type="text" @keydown.tab="selectActive" @keydown.esc="selectActiveEsc" id="keysLive">
         </div>
       </div>
     </div>
@@ -30,21 +31,44 @@
             }
           })
         }
+      },
+      selectActive(event) {
+        this.select.list++;
+        if (this.select.list == this.info.countLists) {
+          this.select.list = -1;
+        }
+        console.log(`select active #${this.select.list}`)
+
+        event.preventDefault()
+        event.stopPropagation();
+        return false;
+      },
+      selectActiveEsc(event) {
+        this.select.list = -2;
+        console.log(`select active #${this.select.list}`)
+
+        event.preventDefault()
+        event.stopPropagation();
+        return false;
       }
     },
     mounted() {
       console.log('mounted lists')
-        /*this.$store.commit('newList', {
-          info: {
-            title: 'sss'
-          }
-        })//*/
+      window.onclick = function(event, ee, dd) {
+        $('#keysLive').trigger('focus');
+      }
     },
     computed: {
       lists: function() {
         console.log('update lists');
         window.localStorage.setItem('info', JSON.stringify(this.$store.state.info));
         return this.$store.state.lists;
+      },
+      select: function() {
+        return this.$store.state.info.select;
+      },
+      info: function() {
+        return this.$store.state.info;
       }
     }
   }
@@ -54,5 +78,14 @@
 <style scoped>
   .card-action {
     min-height: 70px;
+  }
+  
+  .active-select {
+    background-color: rgba(0, 255, 255, 0.2);
+  }
+  
+  #keysLive {
+    position: fixed;
+    top: -100px;
   }
 </style>

@@ -14,7 +14,7 @@ Vue.component('List', List)
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
-new Vue({
+var appLists = new Vue({
   el: '#app',
   router,
   store,
