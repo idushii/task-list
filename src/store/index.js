@@ -15,16 +15,44 @@ let state = {
 for (let i = 0; i < state.info.countLists; i++)
   state.lists.push(JSON.parse(window.localStorage.getItem(`list_${i}`)))
 
+state.login = {
+  uid: ''
+}
+
 export default new Vuex.Store({
   state: state,
   mutations: {
     init(state) {
-      firebase.database().ref('users/lists')
+      console.log('init store')
+      state.login = JSON.parse(localStorage.getItem('login'))
+      if (!state.login) { return; }
+      firebase.database().ref('user_' + state.login.uid + '/')
         .once('value', function (snapshot) {
           let val = snapshot.val();
-          state.info = val.info;
-          state.lists = val.lists != undefined ? val.lists : [];
+          console.log(val)
+          if (val != null)
+            state.info = val.info || { title: '', countLists: 0, select: { list: -1, item: -1 } };
+          else {
+            state.info = { title: '', countLists: 0, select: { list: -1, item: -1 } };
+          }
+          //state.lists = val.lists || [];
+          state.lists.length = 0;
+          for (let list in val) {
+            if (list != 'info') {
+              state.lists.push(val[list])
+            }
+          }
         }); //*/
+    },
+    login(state, data) {
+      state.login = data
+      localStorage.setItem('login', JSON.stringify(data))
+    },
+    signout() {
+      state.login = undefined;
+      state.info = { title: '', countLists: 0, select: { list: -1, item: -1 } }
+      state.lists = []
+      localStorage.removeItem('login')
     },
     newList(state, data) {
       let now = new Date();
@@ -35,6 +63,8 @@ export default new Vuex.Store({
       list.items = []
       state.lists.push(list);
       state.info.countLists = state.lists.length;
+      state.info.select.list = state.lists.length - 1;
+      state.info.select.item = -1;
     },
     updateListInfo(state, data) {
       state.lists[data.numList].times.update = new Date();

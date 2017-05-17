@@ -49,7 +49,7 @@
       remove() {
         if (window.confirm('Удалить список?')) {
           this.$store.commit('removeList', this)
-          window.localStorage.removeItem(`list_${this.stateInfo.countLists}`)
+            //window.localStorage.removeItem(`list_${this.stateInfo.countLists}`)
           this.save()
         }
       },
@@ -65,6 +65,7 @@
             times: {}
           })
           this.save()
+          this.$parent.showList()
         }
       },
       checkItem(item, isCheck = null) {
@@ -110,11 +111,11 @@
       },
       save() {
         //console.log(`save list #${this.numList}`)
-        this.list.items = this.list.items.filter((list, index) => typeof(index) == 'number')
-        window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list));
-        firebase.database().ref('users/lists/list_' + this.numList).set({
-          list: this.list
-        }); //*/
+        this.list.items = this.list.items.filter((list, index) => typeof(index) == 'number');
+        //window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list));
+        if (this.$store.state.login.uid) {
+          firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + this.numList).set(this.list); //*/
+        }
       },
       thisSelectItem(numItem) {
         return this.$store.state.info.select.item == numItem
@@ -135,9 +136,9 @@
           times: {}
         };
 
-        if (list.items == undefined) list.items = []
-          //console.log(`list #${this.numList}`)
-          //console.log(list)
+        if (list.items == undefined) list.items = [];
+        //console.log(`list #${this.numList}`)
+        //console.log(list)
         return list;
       },
       items() {
