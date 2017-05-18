@@ -10,8 +10,12 @@ Vue.use(Vuex)
 
 import List from '@/components/List'
 import Help from '@/components/Help'
+import PDF from '@/components/PDF'
+import Login from '@/components/Login'
 Vue.component('List', List)
 Vue.component('Help', Help)
+Vue.component('PDF', PDF)
+Vue.component('Login', Login)
 
 Vue.config.productionTip = false
 

@@ -42,6 +42,7 @@ export default new Vuex.Store({
               state.lists.push(val[list])
             }
           }
+          localStorage.setItem('lists', JSON.stringify(state.lists))
         }); //*/
     },
     login(state, data) {

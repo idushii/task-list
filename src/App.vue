@@ -6,10 +6,20 @@
 
 <script>
   export default {
-    name: 'app'
+    name: 'app',
+    mounted() {
+      this.$store.commit('init')
+    }
   }
 </script>
 
 <style>
-  #app {}
+  html,
+  body {
+    height: 100%;
+  }
+  
+  #app {
+    height: 100%;
+  }
 </style>

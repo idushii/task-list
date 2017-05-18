@@ -1,7 +1,7 @@
 <template>
   <div class="row">
     <div class="col s12 m12">
-      <div class="card" :class="{'active-select': select.list == -1}" id="head">
+      <div class="card" id="head">
         <div class="card-content" style="min-height: 85px;">
           <span class="card-title center">{{isLogin ? 'Списки' : ''}} {{Progress}}
             <div class="waves-effect waves-light btn-flat left tooltipped" @click="userLogin" data-tooltip="Войти / выйти из системы"><i class="fa title-list-check" :class="{'fa-sign-in' : !isLogin, 'fa-sign-out': isLogin}"></i></div>
@@ -9,32 +9,16 @@
             <div class="waves-effect waves-light btn right tooltipped" @click="newList" v-if="isLogin" data-tooltip="Новый список"><i class="material-icons">add</i></div>
             <div class="waves-effect waves-light btn-flat right tooltipped" @click="setKeyboard" v-if="isLogin" data-tooltip="Режим ввода с клавиатуры и режим мобильного устройства"><i class="fa title-list-check" :class="{'fa-keyboard-o' : !hasKeyboard, 'fa-mobile': hasKeyboard}"></i></div>
           </span>
-          <input type="text" @keydown="selectActive" @keyup="findShiftKey" id="keysLive" autofocus v-if="hasKeyboard">
+          <input type="text" @keydown="selectActive" @keyup="findAddenKey" id="keysLive" autofocus v-if="hasKeyboard">
         </div>
       </div>
     </div>
     <div class="col s12 lists-container">
-      <List v-for="(list, index) in lists" :key="index" :num-list='index'></List>
+      <List v-for="(list, index) in lists" :key="index" :num-list='index' ref="list"></List>
     </div>
-    <help></help>
-    <div id="modal1" class="modal">
-      <div class="modal-content">
-        <div class="row">
-          <div class="col s12"><h4>Войти</h4></div>
-          <div class="input-field col s12">
-            <input placeholder="" id="Login" type="text" v-model="Login" @keyup.enter="login" />
-            <label for="Login">Login</label>
-          </div>
-          <div class="input-field col s12">
-            <input placeholder="" id="Pass" type="password" v-model="Pass" @keyup.enter="login" />
-            <label for="Pass">Pass</label>
-          </div>
-        </div>
-        <div class="col s12" style="min-height: 65px;">
-          <div class="waves-effect waves-light btn right" @click="login">Войти</div>
-        </div>
-      </div>
-    </div>
+    <help ref="help"></help>
+    <PDF ref="PDF"></PDF>
+    <Login ref="Login"></Login>
   </div>
 </template>
 
@@ -43,12 +27,10 @@
     name: 'Lists',
     data() {
       return {
-        lastFocus: -2,
+        lastFocus: -1,
         Shift: '',
+        Cntrl: '',
         isLogin: false,
-        FormLogin: false,
-        Login: 'razrab@mail.ru',
-        Pass: '111111',
         hasKeyboard: localStorage.getItem('hasKeyboard') == 'false' ? false : true
       }
     },
@@ -73,15 +55,18 @@
         event.stopPropagation();
         return false;
       },
-      findShiftKey(event) {
-        //console.log('keyUp: ' + event.key)
+      findAddenKey(event) {
+        console.log('keyUp: ' + event.key)
         if (event.key == 'Shift') {
           this.Shift = false;
+        }
+        if (event.key == 'Control') {
+          this.Cntrl = false;
         }
       },
       showList() {
         //console.log('show list')
-        let selectList = this.select.list > -1 ? this.$children[this.select.list].$el : head;
+        let selectList = this.select.list > -1 ? this.$refs.list[this.select.list].$el : head;
         let list = {
           top: selectList.offsetTop,
           height: selectList.offsetHeight
@@ -100,73 +85,99 @@
         let selectItem = this.select.item;
 
         if (event.key == 'Shift') this.Shift = true;
+        if (event.key == 'Control') this.Cntrl = true;
 
         //console.log(`keyDown: ${event.key}`)
-        if ((event.key == 'Tab') & !this.Shift) {
-          this.select.list++;
-          this.select.item = -1;
-          if (selectList == (this.countLists - 1)) {
+        if (event.key == 'Escape') {
+          if (selectList == 0 & selectItem == -1) {
             this.select.list = -1;
           }
-          this.showList()
-          this.defaultEvent(event)
-        }
-        if (event.key == 'Tab' & this.Shift) {
-          this.select.list--;
-          this.select.item = -1;
-          if (selectList == -1) {
-            this.select.list = this.countLists - 1;
-          }
-          this.showList()
-          this.defaultEvent(event)
-        }
-        if (event.key == 'Escape') {
-          if (selectList == -1) {
-            this.select.list = -2;
+          if (selectList > 0 & selectItem == -1) {
+            this.select.list = 0;
+            this.showList()
           }
           if (selectList > -1) {
             if (selectItem > -1) {
               this.select.item = -1;
               this.showList()
-            } else {
-              this.select.list = -1;
-              this.select.item = -1;
             }
           }
           this.defaultEvent(event)
         }
         if (event.key == 'Insert') {
-          if (selectList == -1) {
+          if (!this.Cntrl & selectList > -1) {
+            this.$refs.list[selectList].newItem()
+          }
+          if (this.Cntrl) {
             this.newList()
             this.select.list = this.lists.length - 1;
+            this.Cntrl = false;
           }
-          if (selectList > -1) {
-            this.$children[selectList].newItem()
-          }
-          this.defaultEvent(event)
         }
-        if (event.key == 'ArrowDown' || event.key == 'ArrowRight') {
+        if (event.key == 'ArrowUp') {
           if (selectList > -1) {
-            this.select.item++;
-            if (selectItem > (this.lists[selectList].items.length - 2)) {
-              this.select.item = 0;
+            let oneItem = selectItem;
+            let twoItem = selectItem > 0 ? selectItem - 1 : this.lists[selectList].items.length - 1;
+            this.select.item = twoItem;
+            if (this.Cntrl) {
+              let itemSelect = this.$store.state.lists[selectList].items.splice(oneItem, 1)[0]
+              this.$store.state.lists[selectList].items.splice(twoItem, 0, itemSelect)
             }
           }
         }
-        if (event.key == 'ArrowUp' || event.key == 'ArrowLeft') {
+        if (event.key == 'ArrowDown') {
           if (selectList > -1) {
-            this.select.item--;
-            if (selectItem < 1) {
-              this.select.item = this.lists[selectList].items.length - 1;
+            let oneItem = selectItem;
+            let twoItem = (selectItem + 1) % this.lists[selectList].items.length;
+            this.select.item = twoItem;
+
+            if (this.Cntrl) {
+              let itemSelect = this.$store.state.lists[selectList].items.splice(oneItem, 1)[0]
+              this.$store.state.lists[selectList].items.splice(twoItem, 0, itemSelect)
             }
+          }
+        }
+        if (event.key == 'ArrowRight') {
+          if (selectList == -1) {
+            this.select.list = 0;
+          }
+          if (selectList > -1) {
+            let oneList = selectList;
+            let twoList = (selectList + 1) % this.lists.length;
+            if (this.Cntrl) {
+              let ListSelect = this.$store.state.lists.splice(oneList, 1)[0]
+              this.$store.state.lists.splice(twoList, 0, ListSelect)
+            }
+            this.select.list = twoList;
+            this.select.item = -1;
+            this.showList()
+          }
+        }
+        if (event.key == 'ArrowLeft') {
+          if (selectList == -1) {
+            this.select.list = 0;
+          }
+
+          if (selectList > -1) {
+            let oneList = selectList;
+            let twoList = selectList > 0 ? selectList - 1 : this.lists.length - 1;
+
+            if (this.Cntrl) {
+              let ListSelect = this.$store.state.lists.splice(oneList, 1)[0]
+              this.$store.state.lists.splice(twoList, 0, ListSelect)
+            }
+
+            this.select.list = twoList;
+            this.select.item = -1;
+            this.showList()
           }
         }
         if (event.key == ' ') {
           if (selectList > -1) {
             if (selectItem == -1) {
-              this.$children[selectList].checkList()
+              this.$refs.list[selectList].checkList()
             } else {
-              this.$children[selectList].checkItem(this.$children[selectList].items[selectItem])
+              this.$refs.list[selectList].checkItem(this.$refs.list[selectList].items[selectItem])
             }
           }
         }
@@ -177,21 +188,47 @@
         if (event.key == 'F2') {
           if (selectList > -1) {
             if (selectItem == -1) {
-              this.$children[selectList].rename()
+              this.$refs.list[selectList].rename()
             } else {
-              this.$children[selectList].renameItem(this.$children[selectList].items[selectItem])
+              this.$refs.list[selectList].renameItem(this.$refs.list[selectList].items[selectItem])
             }
           }
         }
         if (event.key == 'Delete') {
           if (selectList > -1 && selectItem == -1) {
-            this.$children[selectList].remove()
+            this.$refs.list[selectList].remove()
             this.select.list = this.lists.length - 1;
           }
           if (selectList > -1 && selectItem > -1) {
-            this.$children[selectList].deleteItem(selectItem)
+            this.$refs.list[selectList].deleteItem(selectItem)
           }
         }
+        if (event.key == 'p' || event.key == 'з') {
+          console.log('print')
+          this.$refs.PDF.print();
+        }
+        if (event.key == 'l' || event.key == 'д') {
+          console.log('key login')
+          this.userLogin()
+        }
+      },
+      save() {
+        if (this.$store.state.login.uid) {
+          firebase.database().ref('user_' + this.$store.state.login.uid + '/info').set(this.$store.state.info); //*/
+          //console.log('save lists')
+          firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + (this.lists.length - 1)).set(this.lists[this.lists.length - 1]); //*/
+        }
+      },
+      setKeyboard() {
+        this.hasKeyboard = !this.hasKeyboard
+        localStorage.setItem('hasKeyboard', this.hasKeyboard)
+        if (!this.hasKeyboard) {
+          this.select.list = -2;
+          this.select.item = -1;
+        }
+      },
+      openHelp() {
+        $('#Help').modal('open')
       },
       userLogin() {
         console.log('userLogin')
@@ -212,39 +249,7 @@
             })
         }
       },
-      login() {
-        firebase.auth().signInWithEmailAndPassword(this.Login, this.Pass)
-          .then(data => {
-            Materialize.toast('Успешный вход', 5000)
-            $('#modal1').modal('close');
-            this.isLogin = true;
-            this.FormLogin = false;
-            this.$store.commit('login', data)
-            this.$store.commit('init')
-          })
-          .catch(function(error) {
-            Materialize.toast(error.message, 5000)
-          });
 
-      },
-      save() {
-        if (this.$store.state.login.uid) {
-          firebase.database().ref('user_' + this.$store.state.login.uid + '/info').set(this.$store.state.info); //*/
-          //console.log('save lists')
-          firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + (this.lists.length - 1)).set(this.lists[this.lists.length - 1]); //*/
-        }
-      },
-      setKeyboard() {
-        this.hasKeyboard = !this.hasKeyboard
-        localStorage.setItem('hasKeyboard', this.hasKeyboard)
-        if (!this.hasKeyboard) {
-          this.select.list = -2;
-          this.select.item = -1;
-        }
-      },
-      openHelp() {
-        $('#Help').modal('open')
-      }
     },
     mounted() {
       console.log('mounted lists')
@@ -254,7 +259,6 @@
           $('#keysLive').trigger('focus');
         }
       }
-      this.$store.commit('init')
       if (this.$store.state.login) {
         this.isLogin = true
       }
@@ -316,7 +320,7 @@
   .lists-container {
     display: ms-grid;
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 50% auto;
   }
   
   @media(max-width: 700px) {
@@ -327,7 +331,7 @@
   
   @media(min-width: 1000px) {
     .lists-container {
-      grid-template-columns: auto auto auto;
+      grid-template-columns: 33% 33% auto;
     }
   }
 </style>
