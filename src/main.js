@@ -9,7 +9,9 @@ import store from './store'
 Vue.use(Vuex)
 
 import List from '@/components/List'
+import Help from '@/components/Help'
 Vue.component('List', List)
+Vue.component('Help', Help)
 
 Vue.config.productionTip = false
 

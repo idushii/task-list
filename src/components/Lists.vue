@@ -3,17 +3,20 @@
     <div class="col s12 m12">
       <div class="card" :class="{'active-select': select.list == -1}" id="head">
         <div class="card-content" style="min-height: 85px;">
-          <span class="card-title">{{isLogin ? 'Списки' : ''}} {{Progress}}
-            <div class="waves-effect waves-light btn right" @click="newList" v-if="isLogin"><i class="material-icons">add</i></div>
-            <div class="waves-effect waves-light btn-flat left" @click="userLogin">{{isLogin ? 'Выйти' : 'Войти'}} <i class="fa title-list-check right" :class="{'fa-sign-in' : !isLogin, 'fa-sign-out': isLogin}"></i></div>
+          <span class="card-title center">{{isLogin ? 'Списки' : ''}} {{Progress}}
+            <div class="waves-effect waves-light btn-flat left tooltipped" @click="userLogin" data-tooltip="Войти / выйти из системы"><i class="fa title-list-check" :class="{'fa-sign-in' : !isLogin, 'fa-sign-out': isLogin}"></i></div>
+            <div class="waves-effect waves-light btn-flat left" @click="openHelp">F1</div>
+            <div class="waves-effect waves-light btn right tooltipped" @click="newList" v-if="isLogin" data-tooltip="Новый список"><i class="material-icons">add</i></div>
+            <div class="waves-effect waves-light btn-flat right tooltipped" @click="setKeyboard" v-if="isLogin" data-tooltip="Режим ввода с клавиатуры и режим мобильного устройства"><i class="fa title-list-check" :class="{'fa-keyboard-o' : !hasKeyboard, 'fa-mobile': hasKeyboard}"></i></div>
           </span>
-          <input type="text" @keydown="selectActive" @keyup="findShiftKey" id="keysLive" @focusout="focusout" @focusin="focus" autofocus>
+          <input type="text" @keydown="selectActive" @keyup="findShiftKey" id="keysLive" autofocus v-if="hasKeyboard">
         </div>
       </div>
     </div>
-    <div class="col s12 m6" v-for="(list, index) in lists">
-      <List :num-list='index'></List>
+    <div class="col s12 lists-container">
+      <List v-for="(list, index) in lists" :key="index" :num-list='index'></List>
     </div>
+    <help></help>
     <div id="modal1" class="modal">
       <div class="modal-content">
         <div class="row">
@@ -45,7 +48,8 @@
         isLogin: false,
         FormLogin: false,
         Login: 'razrab@mail.ru',
-        Pass: '111111'
+        Pass: '111111',
+        hasKeyboard: localStorage.getItem('hasKeyboard') == 'false' ? false : true
       }
     },
     methods: {
@@ -76,7 +80,7 @@
         }
       },
       showList() {
-        console.log('show list')
+        //console.log('show list')
         let selectList = this.select.list > -1 ? this.$children[this.select.list].$el : head;
         let list = {
           top: selectList.offsetTop,
@@ -88,7 +92,7 @@
         };
 
         if (list.top > screen.top || list.top + list.height < screen.top + screen.height) {
-          window.scrollTo(0, list.top)
+          window.scrollTo(0, list.top - 100)
         }
       },
       selectActive(event) {
@@ -166,6 +170,10 @@
             }
           }
         }
+        if (event.key == 'F1') {
+          this.openHelp();
+          this.defaultEvent(event)
+        }
         if (event.key == 'F2') {
           if (selectList > -1) {
             if (selectItem == -1) {
@@ -184,13 +192,6 @@
             this.$children[selectList].deleteItem(selectItem)
           }
         }
-      },
-      focusout() {
-        this.lastFocus = this.select.list;
-        this.select.list = -2;
-      },
-      focus() {
-        this.select.list = this.lastFocus;
       },
       userLogin() {
         console.log('userLogin')
@@ -229,15 +230,26 @@
       save() {
         if (this.$store.state.login.uid) {
           firebase.database().ref('user_' + this.$store.state.login.uid + '/info').set(this.$store.state.info); //*/
-          console.log('save lists')
+          //console.log('save lists')
           firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + (this.lists.length - 1)).set(this.lists[this.lists.length - 1]); //*/
         }
+      },
+      setKeyboard() {
+        this.hasKeyboard = !this.hasKeyboard
+        localStorage.setItem('hasKeyboard', this.hasKeyboard)
+        if (!this.hasKeyboard) {
+          this.select.list = -2;
+          this.select.item = -1;
+        }
+      },
+      openHelp() {
+        $('#Help').modal('open')
       }
     },
     mounted() {
       console.log('mounted lists')
       window.onclick = function(event) {
-        console.log('click')
+        //console.log('click')
         if (modal1.classList.value.indexOf('open') == -1) {
           $('#keysLive').trigger('focus');
         }
@@ -270,7 +282,6 @@
       }
     }
   }
-  $('#modal1').modal()
 
   if ('ontouchstart' in document.documentElement) {
     $('#keysLive').hide()
@@ -278,6 +289,13 @@
   } else {
     console.log('false')
   }
+  $(document).ready(function() {
+    $('.tooltipped').tooltip({
+      delay: 50,
+      position: 'bottom'
+    });
+    $('#modal1').modal()
+  });
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -293,5 +311,23 @@
   #keysLive {
     position: fixed;
     top: -100px;
+  }
+  
+  .lists-container {
+    display: ms-grid;
+    display: grid;
+    grid-template-columns: auto auto;
+  }
+  
+  @media(max-width: 700px) {
+    .lists-container {
+      grid-template-columns: auto;
+    }
+  }
+  
+  @media(min-width: 1000px) {
+    .lists-container {
+      grid-template-columns: auto auto auto;
+    }
   }
 </style>

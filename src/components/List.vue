@@ -1,26 +1,32 @@
 <template>
-  <div class="card" id="List" :class="{'active-select': thisSelect}">
+  <div class="card list" id="List" :class="{'active-select': thisSelect}" @click="selectByClick">
     <div class="card-content">
-      <div class="row">
-        <div class="col s10 card-title">
-          <i class="fa title-list-check" :class="{'fa-square-o' : !this.info.complete, 'fa-check-square-o': this.info.complete}" aria-hidden="true" @click="checkList" v-if="progress != ''"></i>
-          <span class="title-list" @click="rename">{{info.title}}</span>
+      <div class="row title-list">
+        <div class="col s1 card-title">
+          <i class="fa" :class="{'fa-square-o' : !this.info.complete, 'fa-check-square-o': this.info.complete}" aria-hidden="true" @click="checkList"></i>
         </div>
-        <div class="col s2 card-title">
-          <div class="waves-effect waves-light btn right" @click="newItem"><i class="material-icons">add</i></div>
-        </div><br>
-        <div v-for="(item, index) in items">
-          <div class="col s12" :class="{'active-select-item': thisSelectItem(index)}">
-            <i class="fa title-list-check" :class="{'fa-square-o' : !item.complete, 'fa-check-square-o': item.complete}" aria-hidden="true" @click="checkItem(item)"></i>
-            <span class="title-item" @click="renameItem(item)">{{item.title}}</span>
-            <div class="waves-effect waves-light btn-flat" @click="deleteItem(index)"><i class="material-icons">delete</i></div>
-          </div>
+        <div class="col s9 card-title" @click="rename">
+          {{info.title}}
         </div>
-      </div>  
+        <div class="col s2 waves-effect waves-light btn" @click="newItem"><i class="material-icons">add</i></div>
+      </div>
+      <div class="row line-item" v-for="(item, index) in items" :class="{'active-select-item': thisSelectItem(index)}">
+        <div class="col s1 title-list-check">
+          <i class="fa" :class="{'fa-square-o' : !item.complete, 'fa-check-square-o': item.complete}" aria-hidden="true" @click="checkItem(item)"></i>
+        </div>
+        <div class="col s9 title-item truncate" @click="renameItem(item)">
+          {{item.title}}
+        </div>
+        <div class="col s1 title-list-delete">
+          <i class="fa fa-trash" aria-hidden="true" @click="deleteItem(item)"></i>
+        </div>
+      </div>
     </div>
     <div class="card-action">
-      <div class="waves-effect waves-light btn-flat left" @click="remove"><i class="material-icons">delete</i></div>
-      <span class="right progress-items"><b>{{progress}}</b></span>
+      <div class="row">
+        <div class="col s1 waves-effect waves-light btn-flat left" @click="remove"><i class="material-icons">delete</i></div>
+        <div class="col s11 progress-items center-align"><b>{{progress}}</b></div>
+      </div>
     </div>
   </div>
 </template>
@@ -111,14 +117,20 @@
       },
       save() {
         //console.log(`save list #${this.numList}`)
-        this.list.items = this.list.items.filter((list, index) => typeof(index) == 'number');
         //window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list));
+        this.list.items = this.list.items.filter((list, index) => typeof(index) == 'number');
         if (this.$store.state.login.uid) {
           firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + this.numList).set(this.list); //*/
         }
       },
       thisSelectItem(numItem) {
         return this.$store.state.info.select.item == numItem
+      },
+      selectByClick() {
+        if (this.$parent.hasKeyboard) {
+          this.$store.state.info.select.list = this.numList;
+          this.$store.state.info.select.item = -1;
+        }
       }
     },
     data() {
@@ -173,11 +185,14 @@
     top: 3px;
     cursor: pointer;
     margin-right: 10px;
+    width: 20px;
   }
   
-  .title-list {
-    border-bottom: 1px dashed black;
+  .title-list-delete {
+    position: relative;
+    top: 3px;
     cursor: pointer;
+    margin-left: 10px;
   }
   
   .title-item {
@@ -203,5 +218,28 @@
   
   .active-select-item {
     background-color: white;
+  }
+  
+  #List {
+    margin: 5px;
+    display: -ms-grid;
+    display: grid;
+    grid-template-rows: auto 70px;
+    grid-template-columns: auto;
+  }
+  
+  .title-list {
+    cursor: pointer;
+    margin-bottom: 0px;
+    text-align: center;
+  }
+  
+  .item-container {
+    margin-bottom: 3px;
+  }
+  
+  .line-item {
+    margin-bottom: 0px;
+    padding: 3px;
   }
 </style>
