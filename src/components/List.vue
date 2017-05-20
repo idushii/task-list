@@ -10,7 +10,8 @@
         </div>
         <div class="col s2 waves-effect waves-light btn" @click="newItem"><i class="material-icons">add</i></div>
       </div>
-      <div class="row line-item" v-for="(item, index) in items" :class="{'active-select-item': thisSelectItem(index)}">
+      <transition-group name="list" tag="div">
+      <div class="row line-item " v-for="(item, index) in items" v-bind:key="index" :class="{'active-select-item': thisSelectItem(index)}">
         <div class="col s1 title-list-check">
           <i class="fa" :class="{'fa-square-o' : !item.complete, 'fa-check-square-o': item.complete}" aria-hidden="true" @click="checkItem(item)"></i>
         </div>
@@ -18,9 +19,10 @@
           {{item.title}}
         </div>
         <div class="col s1 title-list-delete">
-          <i class="fa fa-trash" aria-hidden="true" @click="deleteItem(item)"></i>
+          <i class="fa fa-trash" aria-hidden="true" @click="deleteItem(index)"></i>
         </div>
       </div>
+      </transition-group>
     </div>
     <div class="card-action">
       <div class="row">
@@ -107,7 +109,7 @@
         }
       },
       deleteItem(index) {
-        if (window.confirm('Удалить подзадачу?')) {
+        if (window.confirm(`Удалить подзадачу?`)) {
           this.$store.commit('removeItem', {
             numList: this.numList,
             numItem: index
@@ -241,5 +243,16 @@
   .line-item {
     margin-bottom: 0px;
     padding: 3px;
+  }
+  
+  .list-enter-active,
+  .list-leave-active {
+    transition: all 200ms;
+  }
+  
+  .list-enter,
+  .list-leave-to {
+    opacity: 0;
+    /*transform: translateX(30px);*/
   }
 </style>

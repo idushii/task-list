@@ -44,6 +44,13 @@ export default new Vuex.Store({
           }
           localStorage.setItem('lists', JSON.stringify(state.lists))
         }); //*/
+
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          console.log('auth change')
+        }
+      });
+
     },
     login(state, data) {
       state.login = data
@@ -110,5 +117,11 @@ export default new Vuex.Store({
         list.times.complete = now;
       }
     },
+  },
+  actions: {
+    signUp(state, User) {
+      console.log('sign up actions')
+      return firebase.auth().createUserWithEmailAndPassword(User.Login, User.Pass)
+    }
   }
 })

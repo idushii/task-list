@@ -30,7 +30,6 @@
         lastFocus: -1,
         Shift: '',
         Cntrl: '',
-        isLogin: false,
         hasKeyboard: localStorage.getItem('hasKeyboard') == 'false' ? false : true
       }
     },
@@ -48,7 +47,9 @@
           setTimeout(() => {
             this.showList()
           }, 100)
+          return true;
         }
+        return false;
       },
       defaultEvent(event) {
         event.preventDefault()
@@ -109,8 +110,9 @@
             this.$refs.list[selectList].newItem()
           }
           if (this.Cntrl) {
-            this.newList()
-            this.select.list = this.lists.length - 1;
+            if (this.newList()) {
+              this.select.list = this.lists.length - 1;
+            }
             this.Cntrl = false;
           }
         }
@@ -259,9 +261,6 @@
           $('#keysLive').trigger('focus');
         }
       }
-      if (this.$store.state.login) {
-        this.isLogin = true
-      }
     },
     computed: {
       lists: function() {
@@ -283,6 +282,9 @@
       },
       countLists: function() {
         return this.lists.length;
+      },
+      isLogin: function() {
+        return this.$store.state.login ? true : false
       }
     }
   }
