@@ -12,7 +12,7 @@
     name: 'PDF',
     data() {
       return {
-        lists: this.$store.state.lists
+        lists: this.$store.getters.lists
       }
     },
     methods: {
@@ -32,6 +32,6 @@
     height: calc(100% - 10px);
     position: absolute;
     top: 0px;
-    left: -200%
+    left: -200%;
   }
 </style>
