@@ -6,8 +6,8 @@
           <span class="card-title center">{{isLogin ? 'Списки' : ''}} {{Progress}}
             <div class="waves-effect waves-light btn-flat left tooltipped" @click="userLogin" data-tooltip="Войти / выйти из системы"><i class="fa title-list-check" :class="{'fa-sign-in' : !isLogin, 'fa-sign-out': isLogin}"></i></div>
             <div class="waves-effect waves-light btn-flat left" @click="openHelp">F1</div>
-            <div class="waves-effect waves-light btn right tooltipped" @click="newList" v-if="isLogin" data-tooltip="Новый список"><i class="material-icons">add</i></div>
-            <div class="waves-effect waves-light btn-flat right tooltipped" @click="setKeyboard" v-if="isLogin" data-tooltip="Режим ввода с клавиатуры и режим мобильного устройства"><i class="fa title-list-check" :class="{'fa-keyboard-o' : !hasKeyboard, 'fa-mobile': hasKeyboard}"></i></div>
+            <div class="waves-effect waves-light btn right tooltipped" @click="newList" data-tooltip="Новый список"><i class="material-icons">add</i></div>
+            <div class="waves-effect waves-light btn-flat right tooltipped" @click="setKeyboard" data-tooltip="Режим ввода с клавиатуры и режим мобильного устройства"><i class="fa title-list-check" :class="{'fa-keyboard-o' : !hasKeyboard, 'fa-mobile': hasKeyboard}"></i></div>
           </span>
           <input type="text" @keydown="selectActive" @keyup="findAddenKey" id="keysLive" autofocus v-if="hasKeyboard">
         </div>
@@ -38,12 +38,12 @@
         console.log('new list')
         let title = window.prompt('Заголовок?', 'Новый список')
         if (title) {
-          this.$store.commit('newList', {
-            info: {
-              title
-            }
-          })
-          this.save()
+          this.$store.dispatch('newList', {
+              info: {
+                title
+              }
+            })
+            //nextTick ?
           setTimeout(() => {
             this.showList()
           }, 100)
@@ -214,13 +214,6 @@
           this.userLogin()
         }
       },
-      save() {
-        if (this.$store.state.login.uid) {
-          firebase.database().ref('user_' + this.$store.state.login.uid + '/info').set(this.$store.state.info); //*/
-          //console.log('save lists')
-          firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + (this.lists.length - 1)).set(this.lists[this.lists.length - 1]); //*/
-        }
-      },
       setKeyboard() {
         this.hasKeyboard = !this.hasKeyboard
         localStorage.setItem('hasKeyboard', this.hasKeyboard)
@@ -244,7 +237,7 @@
             .then(data => {
               Materialize.toast('Вышел из аккаунта', 5000)
               this.isLogin = false;
-              this.$store.commit('signout')
+              this.$store.dispatch('signout')
             })
             .catch(err => {
               Materialize.toast(error.message, 5000)
@@ -266,8 +259,8 @@
       lists: function() {
         //console.log('update lists');
         //window.localStorage.setItem('info', JSON.stringify(this.$store.state.info));
-        //console.log(this.$store.state)
-        return this.$store.state.lists;
+        console.log(this.$store.state)
+        return this.$store.getters.lists;
       },
       select: function() {
         return this.$store.state.info.select;
@@ -284,7 +277,7 @@
         return this.lists.length;
       },
       isLogin: function() {
-        return this.$store.state.login ? true : false
+        return this.$store.state.login && this.$store.state.login.uid != '' ? true : false
       }
     }
   }

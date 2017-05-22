@@ -46,9 +46,9 @@
     data() {
       return {
         FormLogin: false,
-        Login: 'anonim@mail.ru',
-        Pass: '111111',
-        Pass2: '111111',
+        Login: '',
+        Pass: '',
+        Pass2: '',
         typeForm: 'login'
       }
     },
@@ -60,8 +60,7 @@
             $('#modal1').modal('close');
             this.$parent.isLogin = true;
             this.FormLogin = false;
-            this.$store.commit('login', data)
-            this.$store.commit('init')
+            this.$store.dispatch('login', data)
           })
           .catch(function(error) {
             Materialize.toast(error.message, 5000)

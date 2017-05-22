@@ -24,43 +24,28 @@ export default new Vuex.Store({
   mutations: {
     init(state) {
       console.log('init store')
-      state.login = JSON.parse(localStorage.getItem('login'))
+      let data = JSON.parse(localStorage.getItem('lists'))
+      if (data) {
+        state.info = data.info
+        state.lists = data.lists
+        state.login = data.login
+      } else {
+        state.info = { title: '', countLists: 0, select: { list: -1, item: -1 } }
+        state.lists = []
+      }
+
       if (!state.login) { return; }
-      firebase.database().ref('user_' + state.login.uid + '/')
+      firebase.database().ref('user_' + state.login.uid + '/lists')
         .once('value', function (snapshot) {
           let val = snapshot.val();
-          console.log(val)
-          if (val != null)
+          if (val != null) {
             state.info = val.info || { title: '', countLists: 0, select: { list: -1, item: -1 } };
-          else {
+            state.lists = val.lists || [];
+          } else {
             state.info = { title: '', countLists: 0, select: { list: -1, item: -1 } };
+            state.lists = []
           }
-          //state.lists = val.lists || [];
-          state.lists.length = 0;
-          for (let list in val) {
-            if (list != 'info') {
-              state.lists.push(val[list])
-            }
-          }
-          localStorage.setItem('lists', JSON.stringify(state.lists))
         }); //*/
-
-      firebase.auth().onAuthStateChanged(function (user) {
-        if (user) {
-          console.log('auth change')
-        }
-      });
-
-    },
-    login(state, data) {
-      state.login = data
-      localStorage.setItem('login', JSON.stringify(data))
-    },
-    signout() {
-      state.login = undefined;
-      state.info = { title: '', countLists: 0, select: { list: -1, item: -1 } }
-      state.lists = []
-      localStorage.removeItem('login')
     },
     newList(state, data) {
       let now = new Date();
@@ -119,9 +104,70 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    login(store, data) {
+      store.state.login = data
+      localStorage.setItem('lists', JSON.stringify(store.state));
+      store.commit('init');
+    },
+    signout(store) {
+      console.log('sign out')
+      store.state.info = { title: '', countLists: 0, select: { list: -1, item: -1 } };
+      store.state.lists = []
+      store.state.login = firebase.auth().currentUser;
+      localStorage.setItem('lists', JSON.stringify(store.state))
+    },
+    save(store) {
+      console.log('full save')
+      store.state.lists = store.state.lists.map(list => {
+        list.items = list.items.filter((list, index) => typeof (index) == 'number');
+        return list
+      })
+      localStorage.setItem('lists', JSON.stringify(store.state));
+      if (store.state.login && store.state.login.uid) {
+        firebase.database().ref('user_' + store.state.login.uid + '/lists').set({ info: store.state.info, lists: store.state.lists }); //*/}
+      }
+    },
     signUp(state, User) {
       console.log('sign up actions')
       return firebase.auth().createUserWithEmailAndPassword(User.Login, User.Pass)
+    },
+    newList(store, props) {
+      console.log('save info');
+      store.commit('newList', props);
+      store.dispatch('save');
+    },
+    updateListInfo(store, props) {
+      store.commit('updateListInfo', props);
+    },
+    removeList(store, props) {
+      store.commit('removeList', props);
+      store.dispatch('save');
+    },
+    saveList(store, props) {
+      console.log('save list');
+      store.dispatch('save');
+    },
+    // Работа с пунктами
+    newItem(store, props) {
+      store.commit('newItem', props)
+      store.dispatch('saveList', props)
+    },
+    updateItem(store, props) {
+      store.commit('updateItem', props)
+      store.dispatch('saveList', props)
+    },
+    removeItem(store, props) {
+      store.commit('removeItem', props)
+      store.dispatch('saveList', props)
+    },
+    completeItem(store, props) {
+      store.commit('completeItem', props)
+      store.dispatch('saveList', props)
+    },
+  },
+  getters: {
+    lists: state => {
+      return state.lists
     }
   }
 })

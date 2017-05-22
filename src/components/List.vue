@@ -40,31 +40,29 @@
     methods: {
       checkList() {
         this.info.complete = !this.info.complete;
-        this.$store.commit('updateListInfo', this);
+        this.$store.dispatch('updateListInfo', this);
         for (let i = 0; i < this.items.length; i++) {
           this.checkItem(this.items[i], this.info.complete)
         }
-        this.save()
       },
       rename() {
         let title = window.prompt('Как назвать список?', this.info.title)
         if (title) {
           this.info.title = title;
-          this.$store.commit('updateListInfo', this);
+          this.$store.dispatch('updateListInfo', this);
           this.save()
         }
       },
       remove() {
         if (window.confirm('Удалить список?')) {
-          this.$store.commit('removeList', this)
-            //window.localStorage.removeItem(`list_${this.stateInfo.countLists}`)
-          this.save()
+          this.$store.dispatch('removeList', this);
+          //window.localStorage.removeItem(`list_${this.stateInfo.countLists}`)
         }
       },
       newItem() {
         let title = window.prompt('Как назвать подзадачу?', 'Новая подзадача')
         if (title) {
-          this.$store.commit('newItem', {
+          this.$store.dispatch('newItem', {
             numList: this.numList,
             title
           });
@@ -72,7 +70,6 @@
             complete: false,
             times: {}
           })
-          this.save()
           this.$parent.showList()
         }
       },
@@ -89,20 +86,19 @@
           }
           if (flagAll || flagOnce) {
             this.info.complete = flagAll ? true : false;
-            this.$store.commit('updateListInfo', this);
+            this.$store.dispatch('updateListInfo', this);
           }
         }
-        this.$store.commit('updateItem', {
+        this.$store.dispatch('updateItem', {
           numList: this.numList,
           item
         });
-        this.save()
       },
       renameItem(item) {
         let title = window.prompt('Новый заголовок для подзадачи?', item.title)
         if (title) {
           item.title = title;
-          this.$store.commit('updateItem', {
+          this.$store.dispatch('updateItem', {
             numList: this.numList,
             item
           });
@@ -110,20 +106,20 @@
       },
       deleteItem(index) {
         if (window.confirm(`Удалить подзадачу?`)) {
-          this.$store.commit('removeItem', {
+          this.$store.dispatch('removeItem', {
             numList: this.numList,
             numItem: index
           })
-          this.save()
         }
       },
       save() {
         //console.log(`save list #${this.numList}`)
         //window.localStorage.setItem(`list_${this.numList}`, JSON.stringify(this.list));
         this.list.items = this.list.items.filter((list, index) => typeof(index) == 'number');
-        if (this.$store.state.login.uid) {
-          firebase.database().ref('user_' + this.$store.state.login.uid + '/list_' + this.numList).set(this.list); //*/
-        }
+        this.$store.dispatch('saveList', {
+          numList: this.numList,
+          list: this.list
+        })
       },
       thisSelectItem(numItem) {
         return this.$store.state.info.select.item == numItem
@@ -203,6 +199,7 @@
     border-bottom: 1px dashed black;
     cursor: pointer;
     padding-bottom: 2px;
+    padding: 0px 0px 2px;
   }
   
   .progress-items {
