@@ -4,9 +4,10 @@
       <div class="card" id="head">
         <div class="card-content" style="min-height: 85px;">
           <span class="card-title center">{{isLogin ? `Списки` : ''}} {{Progress}}
-            <div class="waves-effect waves-light btn-flat left tooltipped" @click="userLogin" data-tooltip="Войти / выйти из системы"><span class="hide-on-small-only">{{user}}</span> <i class="fa title-list-check hide-on-med-and-up" :class="{'fa-sign-in' : !isLogin, 'fa-sign-out': isLogin}"></i></div>
+            <div class="waves-effect waves-light btn-flat left tooltipped" @click="userLogin" data-tooltip="Войти / выйти из системы"><span class="hide-on-small-only">{{user}}</span> <i class="fa title-list-check" :class="{'fa-sign-in' : !isLogin, 'fa-sign-out': isLogin, 'hide-on-med-and-up': isLogin}"></i></div>
             <div class="waves-effect waves-light btn-flat left" @click="openHelp">F1</div>
             <div class="waves-effect waves-light btn right tooltipped" @click="newList" data-tooltip="Новый список"><i class="material-icons">add</i></div>
+            <div class="waves-effect waves-light btn-flat right tooltipped" @click="print" data-tooltip="Печать"><i class="fa title-list-check fa-print" ></i></div>
             <div class="waves-effect waves-light btn-flat right tooltipped" @click="setKeyboard" data-tooltip="Режим ввода с клавиатуры и режим мобильного устройства"><i class="fa title-list-check" :class="{'fa-keyboard-o' : !hasKeyboard, 'fa-mobile': hasKeyboard}"></i></div>
           </span>
           <input type="text" @keydown="selectActive" @keyup="findAddenKey" id="keysLive" autofocus v-if="hasKeyboard">
@@ -207,7 +208,7 @@
         }
         if (event.key == 'p' || event.key == 'з') {
           console.log('print')
-          this.$refs.PDF.print();
+          this.print()
         }
         if (event.key == 'l' || event.key == 'д') {
           console.log('key login')
@@ -244,6 +245,9 @@
             })
         }
       },
+      print() {
+        this.$refs.PDF.print();
+      }
 
     },
     mounted() {
