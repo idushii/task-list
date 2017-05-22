@@ -168,6 +168,9 @@ export default new Vuex.Store({
   getters: {
     lists: state => {
       return state.lists
+    },
+    user: state => {
+      return state.login ? state.login.displayName || state.login.email : null
     }
   }
 })
